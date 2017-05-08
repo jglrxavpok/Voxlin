@@ -1,0 +1,65 @@
+import org.gradle.internal.os.OperatingSystem
+
+apply plugin: 'kotlin'
+
+group 'org.jglr.voxlin'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.1.1'
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+switch ( OperatingSystem.current() ) {
+    case OperatingSystem.WINDOWS:
+        project.ext.lwjglNatives = "natives-windows"
+        break
+    case OperatingSystem.LINUX:
+        project.ext.lwjglNatives = "natives-linux"
+        break
+    case OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = "natives-macos"
+        break
+}
+
+project.ext.lwjglVersion = "3.1.1"
+project.ext.jomlVersion = "1.9.2"
+project.ext.steamworks4jVersion = "1.6.1"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.lwjgl:lwjgl:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-bgfx:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-nanovg:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-openal:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-opencl:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-opengles:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-stb:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-nuklear:${lwjglVersion}"
+    runtime "org.lwjgl:lwjgl:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-bgfx:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-nanovg:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-openal:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-opengl:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-opengles:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
+    runtime "org.lwjgl:lwjgl-nuklear:${lwjglVersion}:${lwjglNatives}"
+    compile "org.joml:joml:${jomlVersion}"
+    compile "com.code-disaster.steamworks4j:steamworks4j:${steamworks4jVersion}"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+}
