@@ -134,6 +134,10 @@ class Game {
         if(key == GLFW.GLFW_KEY_H) {
             player.attack(player, 0) // TODO: remove, only for debugging invulnerability frames
         }
+
+        if(key == GLFW.GLFW_KEY_F5) {
+            level.debugAskRebuildBatch()
+        }
     }
 
     fun resize(width: Int, height: Int) {

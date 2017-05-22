@@ -16,6 +16,26 @@ class Level(val width: Int, val height: Int) {
     private var updating = false
     private var dirtyTiles = true
 
+    private val NORTH_BIT = 1
+    private val SOUTH_BIT = 2
+    private val WEST_BIT = 4
+    private val EAST_BIT = 8
+
+    // unused
+    private val NORTH_EAST_BIT = 16
+    private val NORTH_WEST_BIT = 32
+    private val SOUTH_EAST_BIT = 64
+    private val SOUTH_WEST_BIT = 128
+
+    // TODO: val
+    private var connectionLookup = hashMapOf(Pair(NORTH_BIT, Pair(3, 2)),
+            Pair(NORTH_BIT or SOUTH_BIT, Pair(3, 1)),
+            Pair(SOUTH_BIT, Pair(3, 0)),
+            Pair(WEST_BIT, Pair(2, 3)),
+            Pair(EAST_BIT, Pair(0, 3)),
+            Pair(EAST_BIT or WEST_BIT, Pair(1, 3))
+    )
+
     val playerSpawn = Vector2i()
 
     private operator fun Array<IntArray>.get(x: Int, y: Int): Int = this[x][y]
@@ -99,6 +119,26 @@ class Level(val width: Int, val height: Int) {
     }
 
     private fun buildTileBatch() {
+        connectionLookup = hashMapOf(
+                Pair(0, Pair(3, 3)),
+                Pair(NORTH_BIT, Pair(3, 2)),
+                Pair(SOUTH_BIT, Pair(3, 0)),
+                Pair(WEST_BIT, Pair(2, 3)),
+                Pair(EAST_BIT, Pair(0, 3)),
+                Pair(NORTH_BIT or SOUTH_BIT, Pair(3, 1)),
+                Pair(EAST_BIT or WEST_BIT, Pair(1, 3)),
+                Pair(NORTH_BIT or SOUTH_BIT or EAST_BIT, Pair(0, 1)),
+                Pair(NORTH_BIT or SOUTH_BIT or WEST_BIT, Pair(2, 1)),
+                Pair(SOUTH_BIT or EAST_BIT, Pair(0, 0)),
+                Pair(SOUTH_BIT or WEST_BIT, Pair(2, 0)),
+                Pair(NORTH_BIT or EAST_BIT, Pair(0, 2)),
+                Pair(NORTH_BIT or WEST_BIT, Pair(2, 2)),
+                Pair(SOUTH_BIT or EAST_BIT or WEST_BIT, Pair(1, 0)),
+                Pair(NORTH_BIT or EAST_BIT or WEST_BIT, Pair(1, 2)),
+                Pair(NORTH_BIT or EAST_BIT or WEST_BIT or SOUTH_BIT, Pair(1, 1))
+
+        )
+
         RenderingPipeline.resetTiles()
         for(j in 0..height-1) {
             for(i in 0..width-1) {
@@ -121,36 +161,49 @@ class Level(val width: Int, val height: Int) {
             val slotMinU: Float = slot.minU
             val slotMinV: Float = slot.minV
 
-            val u = (posX.toFloat() / TileTextures.width) + slotMinU
+            val u = ((posX.toFloat()) / TileTextures.width) + slotMinU
             val v = (posY.toFloat() / TileTextures.height) + slotMinV
-
-            println("$u ; $v")
             return Vector2f(u, v)
         }
 
-        val solidNeighbors = getConnections(x, y).map { it.map(Tile::solid) }
-        val solidCount = solidNeighbors.map { it.filter { it }.count() }.reduce { acc, i -> acc+i }
 
-        var posX = 1
-        var posY = 1
+        val connectionField = getConnections(x, y)
+        if(connectionField != 0)
+            println(connectionField)
+        val (posX, posY) = connectionLookup.getOrDefault(connectionField, Pair(0, 0))
 
-        if( ! solidNeighbors[0][1] && ! solidNeighbors[1][0] && ! solidNeighbors[1][2] && ! solidNeighbors[2][1]) {// if no neighbors on all sides
-            posX = 3
-            posY = 3
-        }
         val minUV = getCoord(posX*TILES_TO_PIXELS, posY*TILES_TO_PIXELS)
         val maxUV = getCoord(posX*TILES_TO_PIXELS+TILES_TO_PIXELS, posY*TILES_TO_PIXELS+TILES_TO_PIXELS)
         return TextureRegion(minUV.x, minUV.y, maxUV.x, maxUV.y)
     }
 
-    private fun getConnections(x: Int, y: Int): List<List<Tile>> {
-        val topRow = listOf(getTile(x-1, y+1), getTile(x, y+1), getTile(x+1, y+1))
-        val midRow = listOf(getTile(x-1, y), getTile(x, y), getTile(x+1, y))
-        val bottomRow = listOf(getTile(x-1, y-1), getTile(x, y-1), getTile(x+1, y-1))
-        return listOf(topRow, midRow, bottomRow)
+    private fun getConnections(x: Int, y: Int): Int {
+        var bitfield = 0
+        val centerTile = this[x, y]
+        fun canConnectTo(other: Tile): Boolean {
+            // TODO: Connect different tile types?
+            return other.solid && centerTile.solid
+        }
+        if(canConnectTo(this[x, y+1])) {
+            bitfield = bitfield or NORTH_BIT
+        }
+        if(canConnectTo(this[x, y-1])) {
+            bitfield = bitfield or SOUTH_BIT
+        }
+        if(canConnectTo(this[x+1, y])) {
+            bitfield = bitfield or EAST_BIT
+        }
+        if(canConnectTo(this[x-1, y])) {
+            bitfield = bitfield or WEST_BIT
+        }
+        return bitfield
     }
 
     companion object {
         const val TILES_TO_PIXELS = 36
+    }
+
+    fun debugAskRebuildBatch() {
+        dirtyTiles = true
     }
 }

@@ -68,7 +68,7 @@ class PlayerControllerBehavior(entity: Entity) : Behavior(entity) {
     }
 
     fun jump() {
-        if(owner.onGround || owner.ticksSinceOnGround < 2) { // lets a 1/6 seconds to jump after leaving the edge
+        if(owner.onGround || owner.ticksSinceOnGround < 10 && velocity.y < 0f) { // lets a 1/2 seconds to jump after leaving the edge
             val peak = 7.5f // TODO: Change ?
             val gravity = owner.gravityEffect
             val initialSpeed = Math.sqrt(2f*peak*gravity.toDouble())
